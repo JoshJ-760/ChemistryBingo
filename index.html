@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta name="description" content="A chemistry-themed bingo caller for all 118 elements.">
+    <title>Element Bingo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+    <script src="elements.js" defer></script>
+    <script src="game-state.js" defer></script>
+    <script src="canvas-view.js" defer></script>
+    <script src="ui.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Element Bingo home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span>element<span class="brand-light">bingo</span></span>
+        </a>
+        <div class="topbar-right">
+          <span class="round-label"><span class="live-dot"></span> LIVE ROUND</span>
+          <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme">
+            <span class="theme-icon" aria-hidden="true">☾</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="caller-panel" aria-labelledby="current-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">THE CALLER'S DESK</p>
+              <h1 id="current-title">Now calling</h1>
+            </div>
+            <button class="text-button display-menu-button" id="display-menu-button" type="button" aria-expanded="false" aria-controls="display-menu">
+              <span class="sliders-icon" aria-hidden="true">☷</span>
+              Display
+              <span class="chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="display-menu" id="display-menu" hidden>
+              <p class="menu-title">Show on element card</p>
+              <label><input type="checkbox" data-display="number" checked> Atomic number</label>
+              <label><input type="checkbox" data-display="symbol" checked> Symbol</label>
+              <label><input type="checkbox" data-display="name" checked> Element name</label>
+              <label><input type="checkbox" data-display="mass"> Atomic mass</label>
+            </div>
+          </div>
+
+          <div class="card-wrap">
+            <canvas id="element-canvas" width="900" height="570" role="img" aria-label="No element called yet">Your browser does not support Canvas.</canvas>
+          </div>
+
+          <div class="caller-controls">
+            <button class="next-button" id="next-button" type="button">
+              <span>Call next element</span>
+              <span class="button-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button class="reset-button" id="reset-button" type="button" title="Reset this round">
+              <span aria-hidden="true">↺</span>
+              <span class="reset-label">Reset</span>
+            </button>
+          </div>
+          <p class="keyboard-hint">Press <kbd>Space</kbd> to call next</p>
+        </section>
+
+        <aside class="history-panel" aria-labelledby="history-title">
+          <div class="history-heading">
+            <div>
+              <p class="eyebrow">ROUND PROGRESS</p>
+              <h2 id="history-title">Called elements</h2>
+            </div>
+            <span class="count-pill"><span id="called-count">0</span><span class="count-divider">/</span><span id="round-limit">118</span></span>
+          </div>
+
+          <div class="round-setup">
+            <label for="round-size">Game length</label>
+            <select id="round-size">
+              <option value="75">Standard bingo · 75</option>
+              <option value="90">British bingo · 90</option>
+              <option value="118">All elements · 118</option>
+              <option value="custom">Custom length…</option>
+            </select>
+            <form class="custom-round-form" id="custom-round-form" hidden>
+              <label class="visually-hidden" for="custom-round-limit">Custom number of elements</label>
+              <input id="custom-round-limit" type="number" min="1" max="118" step="1" required inputmode="numeric" aria-describedby="round-size-help">
+              <button type="submit">Apply</button>
+            </form>
+            <p id="round-size-help">Uses atomic numbers 1 through the selected limit.</p>
+          </div>
+
+          <div class="progress-track" role="progressbar" aria-label="Elements called" aria-valuemin="0" aria-valuemax="118" aria-valuenow="0" id="progress-track">
+            <span id="progress-fill"></span>
+          </div>
+          <div class="list-tools">
+            <span id="list-hint">Most recent first</span>
+            <div class="list-options">
+              <label class="compact-select-label" for="list-sort">Sort
+                <select id="list-sort" aria-label="Sort called elements">
+                  <option value="called">Call order</option>
+                  <option value="name">Name</option>
+                  <option value="symbol">Symbol</option>
+                  <option value="number">Atomic number</option>
+                </select>
+              </label>
+              <label class="compact-select-label" for="compact-mode">Show
+                <select id="compact-mode" aria-label="Called list display">
+                  <option value="symbol">Symbols</option>
+                  <option value="number">Numbers</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="called-list" id="called-list" aria-live="polite" aria-relevant="additions text">
+            <div class="empty-state" id="empty-state">
+              <span class="empty-atom" aria-hidden="true">◎</span>
+              <p>No elements called yet</p>
+              <span>Your round will appear here.</span>
+            </div>
+          </div>
+          <div class="history-footer">
+            <span class="footer-atom" aria-hidden="true">⚛</span>
+            <span id="pool-summary">Atomic numbers 1–118</span>
+          </div>
+          <label class="list-size-control" for="called-text-size">
+            <span class="size-small" aria-hidden="true">A</span>
+            <input id="called-text-size" type="range" min="12" max="20" step="1" value="14" aria-describedby="called-text-size-value">
+            <span class="size-large" aria-hidden="true">A</span>
+            <output id="called-text-size-value" for="called-text-size">14 px</output>
+            <span class="visually-hidden">Called elements text size</span>
+          </label>
+        </aside>
+      </main>
+
+      <footer class="page-footer">
+        <span>A little chemistry. A lot of bingo.</span>
+        <span class="footer-right">PERIODIC TABLE EDITION <span aria-hidden="true">✳</span></span>
+      </footer>
+    </div>
+  </body>
+</html>
